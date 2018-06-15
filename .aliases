@@ -1,0 +1,76 @@
+# some more ls aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+alias gls='clear ; git status'
+alias gl='git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset" --abbrev-commit --date=relative'
+alias lhs='cd ~/Documents/'
+alias l='ls -lah'
+alias dka='docker kill $(docker ps -q)'
+alias dps='docker ps --format "table {{.Names}}\t{{.Status}}"'
+alias dcu='docker-compose up -d'
+alias dcs='docker-compose stop'
+
+# Functions
+function stpulpop {
+    git stash && git pull origin $1 --rebase && git stash pop
+}
+
+function container-open {
+    echo "\033[0;32mOpening container:\033[0m \n $(container-locate $1)"
+    docker exec -it $(docker ps --filter name=$1 -q) /bin/bash
+}
+
+function container-locate {
+    docker ps --filter name=$1 --format "table {{.ID}}\t{{.Names}}" $2
+}
+
+function watch {
+    local DATE_FORMAT="%Y-%m-%d %H:%M:%S"
+    local START_TIME=$(date +$DATE_FORMAT)
+
+    while true; do
+        clear
+    echo "\033[0;32mWatcher started:\033[0m" $START_TIME
+        echo "\033[0;32mCurrent time   :\033[0m" $(date +$DATE_FORMAT)
+
+        eval $1
+        sleep 1
+    done
+}
+
+function ls-content {
+    find ./* -maxdepth 0 -type f -exec bash -c 'echo ">>>>>>>>> {}"; cat "{}"; printf "\n"' \;
+}
+
+function with-notif {
+    eval $1 ; notification "Done";
+}
+
+function try {
+    eval $1
+    while [ $? -ne 0 ]; do
+        eval $1
+    done
+}
+
+function loop {
+    while [ 1 ]; do
+        eval $1
+    sleep 2
+        echo "============================"
+    done
+}
+
+function wrap-epub {
+    local NAME=$1
+
+    zip -X $NAME.epub mimetype
+    zip -rg $NAME.epub META-INF -x \*.DS_Store
+    zip -rg $NAME.epub $2 -x \*.DS_Store
+}
+
+function notification {
+    terminal-notifier -message "$1; Exit code: $?" -activate com.googlecode.iterm2 -sound default
+}
